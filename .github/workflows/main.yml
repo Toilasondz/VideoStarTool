@@ -1,0 +1,29 @@
+name: Build VideoStarTool Dylib
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile VideoStarTool.dylib
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          clang -arch arm64 -isysroot "$SDK" -miphoneos-version-min=14.0 -fobjc-arc -shared \
+                -framework UIKit -framework Foundation -framework Security \
+                -framework AVFoundation -framework CoreGraphics \
+                VideoStarTool.m VSLogoView.m VSToolOverlay.m \
+                VSNetworkSecurity.m VSOverlayViewController.m VSQRCaptureProxy.m \
+                -o VideoStarTool.dylib
+
+      - name: Upload Dylib Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VideoStarTool-dylib
+          path: VideoStarTool.dylib
